@@ -6,7 +6,8 @@
   "bin": "./cli.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel index.js -o index.es5.js"
+    "build": "babel index.js -o index.es5.js",
+    "prepublish": "npm run build"
   },
   "keywords": [
     "Sankey",
@@ -18,7 +19,7 @@
   "dependencies": {
     "commander": "^2.9.0",
     "d3": "^3.5.17",
-    "d3-sankey-diagram": "^0.3.3",
+    "d3-sankey-diagram": "^0.4.0",
     "jsdom": "^9.4.1",
     "xmlserializer": "^0.4.0"
   },
