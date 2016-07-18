@@ -1,6 +1,6 @@
 {
   "name": "svg-sankey",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create SVG Sankey diagrams from the command line",
   "main": "index.js",
   "bin": "./cli.js",
