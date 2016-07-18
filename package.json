@@ -1,0 +1,29 @@
+{
+  "name": "svg-sankey",
+  "version": "0.1.0",
+  "description": "Create SVG Sankey diagrams from the command line",
+  "main": "index.js",
+  "bin": "./cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel index.js -o index.es5.js"
+  },
+  "keywords": [
+    "Sankey",
+    "SVG",
+    "d3-sankey-diagram"
+  ],
+  "author": "Rick Lupton",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "d3": "^3.5.17",
+    "d3-sankey-diagram": "^0.3.3",
+    "jsdom": "^9.4.1",
+    "xmlserializer": "^0.4.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.10.1",
+    "babel-preset-es2015": "^6.9.0"
+  }
+}
