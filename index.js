@@ -1,10 +1,13 @@
 import program from 'commander';
 import fs from 'fs';
-import d3 from 'd3';
 import jsdom from 'jsdom';
 import xmlserializer from 'xmlserializer';
 
-import sankeyDiagram from 'd3-sankey-diagram';
+import {select} from 'd3-selection';
+import {scaleOrdinal, schemeCategory20} from 'd3-scale';
+import {format} from 'd3-format';
+
+import {sankey, sankeyDiagram, sankeyLinkTitle} from 'd3-sankey-diagram';
 
 // diagram
 
@@ -48,34 +51,61 @@ function parseSize(val) {
   }
 }
 
+function alignLinkTypes(layout, align) {
+  return layout
+    .sourceId(function(d) { return { id: typeof d.source === "object" ? d.source.id : d.source,
+                                     port: align ? d.type : null }; })
+    .targetId(function(d) { return { id: typeof d.target === "object" ? d.target.id : d.target,
+                                     port: align ? d.type : null }; });
+}
+
+function nodeTitle(d) {
+  return d.title !== undefined ? d.title : d.id;
+}
+
+function linkTypeTitle(d) {
+  return d.title !== undefined ? d.title : d.type;
+}
+
+const color = scaleOrdinal(schemeCategory20);
+function linkColor(d) {
+  return d.color !== undefined ? d.color : color(d.type);
+}
+
+const fmt = format('.3s');
+
+const linkTitle = sankeyLinkTitle(nodeTitle, linkTypeTitle, fmt);
 
 function drawDiagram(data) {
   const width = program.size ? program.size[0] : 800,
         height = program.size ? program.size[1] : 600;
 
-  const color = d3.scale.category20();
+  const color = scaleOrdinal(schemeCategory20);
+
+  const margins = program.margins || { top: 10, bottom: 10, left: 50, right: 50 };
+
+  const layout = sankey()
+        .size([width - margins.left - margins.right, height - margins.top - margins.bottom])
+        .ordering(data.order && data.order.length ? data.order : null)
+        .rankSets(data.rankSets);
 
   const diagram = sankeyDiagram()
-          .duration(null)
-          .width(width)
-          .height(height)
-          .nodeTitle(function(d) { return d.data.title !== undefined ? d.data.title : d.id; })
-          .linkTypeTitle(function(d) { return d.data.title; })
-          .linkColor(function(d) { return d.data.color !== undefined ? d.data.color : color(d.data.type); });
-
-  if (program.margins) {
-    diagram.margins(program.margins);
-  }
+        .nodeTitle(nodeTitle)
+        .linkTitle(linkTitle)
+        .linkColor(linkColor)
+        .margins(margins);
 
   const document = jsdom.jsdom();
-  const el = d3.select(document).select('body').append('div');
+  const el = select(document).select('body').append('svg');
 
   el
-    .datum(data)
+    .datum(layout(data))
     .call(diagram);
 
   // put default styles inline
-  el.select('svg')
+  el
+    .attr('width', width)
+    .attr('height', height)
     .attr('viewBox', '0 0 ' + width + ' ' + height)
     .style('font-family',
            '"Helvetica Neue", Helvetica, Arial, sans-serif');
@@ -84,8 +114,8 @@ function drawDiagram(data) {
     .style('opacity', 0.8);
 
   el.selectAll('line')
-    .style('stroke', d => style(d) === 'process' ? '#888' : '#000')
-    .style('stroke-width', d => style(d) === 'process' ? '4px' : '1px');
+    .style('stroke', d => d.style === 'process' ? '#888' : '#000')
+    .style('stroke-width', d => d.style === 'process' ? '4px' : '1px');
 
   el.selectAll('rect')
     .style('fill', 'none');
@@ -99,18 +129,14 @@ function drawDiagram(data) {
     .style('fill', '#999');
 
   // add background
-  el.select('svg').insert('rect', ':first-child')
+  el.insert('rect', ':first-child')
     .attr('width', width)
     .attr('height', height)
     .style('fill', 'white');
 
   // create a file blob of our SVG.
-  const svg = serialize(el.select('svg').node());
+  const svg = serialize(el.node());
   return svg;
-}
-
-function style(d) {
-  return (d.data || {}).style;
 }
 
 const serialize = function(node){
