@@ -15,6 +15,9 @@ program
   .arguments('<file>')
   .option('-s, --size <w>,<h>', 'width and height', parseSize)
   .option('-m, --margins <n>[,...]', '1, 2 or 4 margin values', parseMargins)
+  .option('-p, --position <xattr>,<yattr>', 'node attributes to set positions (manual layout)', parseAttrs)
+  .option('-k, --scale <k>', 'scale (px/value)', Number)
+  .option('--font-size <s>', 'font-size (px/value)', Number)
   .action(function(filename) {
     fs.readFile(filename, 'utf8', function (err, data) {
       if (err) throw err; // we'll not consider error handling for now
@@ -24,7 +27,6 @@ program
     });
   })
   .parse(process.argv);
-
 
 function parseMargins(val) {
   val = val.split(',').map(x => x.trim()).map(Number);
@@ -51,6 +53,17 @@ function parseSize(val) {
   }
 }
 
+
+function parseAttrs(val) {
+  val = val.split(',').map(x => x.trim());
+  if (val.length === 2) {
+    return {xattr: val[0], yattr: val[1]};
+  } else {
+    throw new Error('Expected 2 attribute names');
+  }
+}
+
+
 function alignLinkTypes(layout, align) {
   return layout
     .sourceId(function(d) { return { id: typeof d.source === "object" ? d.source.id : d.source,
@@ -60,7 +73,7 @@ function alignLinkTypes(layout, align) {
 }
 
 function nodeTitle(d) {
-  return d.title !== undefined ? d.title : d.id;
+  return d.title !== undefined ? (d.title.label !== undefined ? d.title.label : d.title) : d.id;
 }
 
 function linkTypeTitle(d) {
@@ -69,12 +82,27 @@ function linkTypeTitle(d) {
 
 const color = scaleOrdinal(schemeCategory20);
 function linkColor(d) {
-  return d.color !== undefined ? d.color : color(d.type);
+  return (d.color !== undefined
+          ? d.color
+          : (d.style !== undefined && d.style.color !== undefined
+             ? d.style.color
+             : color(d.type)));
 }
 
 const fmt = format('.3s');
 
-const linkTitle = sankeyLinkTitle(nodeTitle, linkTypeTitle, fmt);
+// const linkTitle = sankeyLinkTitle(nodeTitle, linkTypeTitle, fmt);
+function linkTitle(d) {
+  const parts = []
+  const sourceTitle = nodeTitle(d.source)
+  const targetTitle = nodeTitle(d.target)
+  const matTitle = linkTypeTitle(d)
+
+  parts.push(`${sourceTitle} → ${targetTitle}`)
+  if (matTitle) parts.push(matTitle)
+  parts.push(fmt(d.data.value))
+  return parts.join('\n')
+}
 
 function drawDiagram(data) {
   const width = program.size ? program.size[0] : 800,
@@ -82,18 +110,29 @@ function drawDiagram(data) {
 
   const color = scaleOrdinal(schemeCategory20);
 
-  const margins = program.margins || { top: 10, bottom: 10, left: 50, right: 50 };
+  const margins = program.margins || { top: 0, bottom: 0, left: 0, right: 0 };
 
   const layout = sankey()
+        .linkValue(function (d) { return d.data.value; })
         .size([width - margins.left - margins.right, height - margins.top - margins.bottom])
         .ordering(data.order && data.order.length ? data.order : null)
         .rankSets(data.rankSets);
+
+  if (program.position) {
+    layout.nodePosition(d => [d[program.position.xattr], d[program.position.yattr]]);
+  }
+
+  if (program.scale) {
+    layout.scale(program.scale);
+  }
 
   const diagram = sankeyDiagram()
         .nodeTitle(nodeTitle)
         .linkTitle(linkTitle)
         .linkColor(linkColor)
-        .margins(margins);
+        .linkMinWidth(d => 0.1)
+        .margins(margins)
+        .groups(data.groups || []);
 
   const document = jsdom.jsdom();
   const el = select(document).select('body').append('svg');
@@ -107,8 +146,9 @@ function drawDiagram(data) {
     .attr('width', width)
     .attr('height', height)
     .attr('viewBox', '0 0 ' + width + ' ' + height)
+    .style('font-size', program.fontSize || null)
     .style('font-family',
-           '"Helvetica Neue", Helvetica, Arial, sans-serif');
+           'Helvetica, Arial, sans-serif');
 
   el.selectAll('.link')
     .style('opacity', 0.8);
@@ -133,6 +173,16 @@ function drawDiagram(data) {
     .attr('width', width)
     .attr('height', height)
     .style('fill', 'white');
+
+  // add title
+  if (data.metadata && data.metadata.title !== undefined) {
+    el.append('text')
+      .attr('x', width - 30)
+      .attr('y', 30)
+      .style('font-size', '200%')
+      .style('text-anchor', 'end')
+      .text(data.metadata.title);
+  }
 
   // create a file blob of our SVG.
   const svg = serialize(el.node());
