@@ -4,7 +4,7 @@ Create SVG Sankey diagrams from the command line. Uses [d3-sankey-diagram](https
 
 ## Installation
 
-svg-sankey requires `node` and `npm`.
+svg-sankey requires [`node` and `npm`](https://nodejs.org).
 
 ```shell
 npm install -g svg-sankey
