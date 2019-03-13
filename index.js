@@ -18,6 +18,7 @@ program
   .option('-p, --position <xattr>,<yattr>', 'node attributes to set positions (manual layout)', parseAttrs)
   .option('-k, --scale <k>', 'scale (px/value)', Number)
   .option('--font-size <s>', 'font-size (px/value)', Number)
+  .option('--node-values <fmt>', 'd3 format string to show node values', parseFormat)
   .action(function(filename) {
     fs.readFile(filename, 'utf8', function (err, data) {
       if (err) throw err; // we'll not consider error handling for now
@@ -27,6 +28,11 @@ program
     });
   })
   .parse(process.argv);
+
+
+function parseFormat(val) {
+  return format(val)
+}
 
 function parseMargins(val) {
   val = val.split(',').map(x => x.trim()).map(Number);
@@ -112,10 +118,14 @@ function drawDiagram(data) {
 
   const margins = program.margins || { top: 0, bottom: 0, left: 0, right: 0 };
 
+  const ordering = (data.metadata && data.metadata.layers)
+        ? data.metadata.layers
+        : (data.order && data.order.length ? data.order : null)
+
   const layout = sankey()
         .linkValue(function (d) { return d.data.value; })
         .size([width - margins.left - margins.right, height - margins.top - margins.bottom])
-        .ordering(data.order && data.order.length ? data.order : null)
+        .ordering(ordering)
         .rankSets(data.rankSets);
 
   if (program.position) {
@@ -128,6 +138,7 @@ function drawDiagram(data) {
 
   const diagram = sankeyDiagram()
         .nodeTitle(nodeTitle)
+        .nodeValue(program.nodeValues ? (d => program.nodeValues(d.value)) : (d => ''))
         .linkTitle(linkTitle)
         .linkColor(linkColor)
         .linkMinWidth(d => 0.1)
