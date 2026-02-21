@@ -1,0 +1,66 @@
+{
+  "format": "sankey-v2",
+  "metadata": {
+    "title": "Example Sankey v2",
+    "authors": [],
+    "layers": [
+      [["source"]],
+      [["process"]],
+      [["sink_a", "sink_b"]]
+    ]
+  },
+  "nodes": [
+    {
+      "id": "source",
+      "title": "Source",
+      "style": {"direction": "r", "hidden": false, "type": "default"}
+    },
+    {
+      "id": "process",
+      "title": "Process",
+      "style": {"direction": "r", "hidden": false, "type": "process"}
+    },
+    {
+      "id": "sink_a",
+      "title": "Sink A",
+      "style": {"direction": "r", "hidden": false, "type": "default"}
+    },
+    {
+      "id": "sink_b",
+      "title": "",
+      "style": {"direction": "r", "hidden": true, "type": "default"}
+    }
+  ],
+  "links": [
+    {
+      "source": "source",
+      "target": "process",
+      "type": "coal",
+      "title": "coal",
+      "time": null,
+      "data": {"value": 5.0},
+      "style": {"color": "#4e79a7", "opacity": 1.0}
+    },
+    {
+      "source": "process",
+      "target": "sink_a",
+      "type": "coal",
+      "title": "coal",
+      "time": null,
+      "data": {"value": 3.5},
+      "style": {"color": "#4e79a7", "opacity": 1.0}
+    },
+    {
+      "source": "process",
+      "target": "sink_b",
+      "type": "waste",
+      "title": "waste",
+      "time": null,
+      "data": {"value": 1.5},
+      "style": {"color": "#bab0ac", "opacity": 0.5}
+    }
+  ],
+  "groups": [
+    {"id": "outputs", "title": "Outputs", "type": "default", "nodes": ["sink_a", "sink_b"]}
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "nodes": [
+    {
+      "id": "source",
+      "title": "Source",
+      "direction": "r",
+      "hidden": false,
+      "type": "default",
+      "fromElsewhere": [],
+      "toElsewhere": []
+    },
+    {
+      "id": "process",
+      "title": "Process",
+      "direction": "r",
+      "hidden": false,
+      "type": "process",
+      "fromElsewhere": [
+        {
+          "source": null,
+          "target": "process",
+          "type": "import",
+          "time": null,
+          "value": 2.0,
+          "title": "import",
+          "color": "#aaaaff",
+          "opacity": 1.0,
+          "data": {"value": 2.0}
+        }
+      ],
+      "toElsewhere": []
+    },
+    {
+      "id": "sink_a",
+      "title": "Sink A",
+      "direction": "r",
+      "hidden": false,
+      "type": "default",
+      "fromElsewhere": [],
+      "toElsewhere": [
+        {
+          "source": "sink_a",
+          "target": null,
+          "type": "export",
+          "time": null,
+          "value": 1.5,
+          "title": "export",
+          "color": "#ffaaaa",
+          "opacity": 1.0,
+          "data": {"value": 1.5}
+        }
+      ]
+    },
+    {
+      "id": "sink_b",
+      "title": "",
+      "direction": "r",
+      "hidden": true,
+      "type": "default",
+      "fromElsewhere": [],
+      "toElsewhere": []
+    }
+  ],
+  "links": [
+    {
+      "source": "source",
+      "target": "process",
+      "type": "coal",
+      "time": null,
+      "value": 5.0,
+      "title": "coal",
+      "color": "#4e79a7",
+      "opacity": 1.0,
+      "data": {"value": 5.0}
+    },
+    {
+      "source": "process",
+      "target": "sink_a",
+      "type": "coal",
+      "time": null,
+      "value": 3.5,
+      "title": "coal",
+      "color": "#4e79a7",
+      "opacity": 1.0,
+      "data": {"value": 3.5}
+    },
+    {
+      "source": "process",
+      "target": "sink_b",
+      "type": "waste",
+      "time": null,
+      "value": 1.5,
+      "title": "waste",
+      "color": "#bab0ac",
+      "opacity": 0.5,
+      "data": {"value": 1.5}
+    }
+  ],
+  "order": [
+    [["source"]],
+    [["process"]],
+    [["sink_a", "sink_b"]]
+  ],
+  "groups": [
+    {"id": "outputs", "title": "Outputs", "type": "default", "nodes": ["sink_a", "sink_b"]}
+  ]
+}
