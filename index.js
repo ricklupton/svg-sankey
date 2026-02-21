@@ -230,7 +230,7 @@ function drawDiagram(data) {
         .linkValue(linkValue)
         .size([width - margins.left - margins.right, height - margins.top - margins.bottom])
         .ordering(ordering)
-        .rankSets(data.rankSets);
+        .rankSets(data.rankSets || data.rank_sets);
 
   // Manual layout via --position-attr (widget style: attribute holds [x, y])
   if (program.positionAttr) {
