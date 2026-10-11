@@ -97,18 +97,7 @@ function linkColor(d) {
 
 const fmt = format('.3s');
 
-// const linkTitle = sankeyLinkTitle(nodeTitle, linkTypeTitle, fmt);
-function linkTitle(d) {
-  const parts = []
-  const sourceTitle = nodeTitle(d.source)
-  const targetTitle = nodeTitle(d.target)
-  const matTitle = linkTypeTitle(d)
-
-  parts.push(`${sourceTitle} → ${targetTitle}`)
-  if (matTitle) parts.push(matTitle)
-  parts.push(fmt(d.data.value))
-  return parts.join('\n')
-}
+const linkTitle = sankeyLinkTitle(nodeTitle, linkTypeTitle, fmt);
 
 function drawDiagram(data) {
   const width = program.size ? program.size[0] : 800,
@@ -123,7 +112,7 @@ function drawDiagram(data) {
         : (data.order && data.order.length ? data.order : null)
 
   const layout = sankey()
-        .linkValue(function (d) { return d.data.value; })
+        .linkValue(d => (d.value != null ? d.value : d.data.value))
         .size([width - margins.left - margins.right, height - margins.top - margins.bottom])
         .ordering(ordering)
         .rankSets(data.rankSets);
